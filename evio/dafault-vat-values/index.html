@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="pt-br" xmlns="http://www.w3.org/1999/html">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>VAT - Avoid default values</title>
+
+        <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+
+		<meta name="description" content="Slides about we are avoiding default values for VAT configurations.">
+		<meta name="author" content="Diego Ramos">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+        <link rel="stylesheet" href="css/custom.css">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+                    <img src="img/evio-logo.png" height="250">
+                    <h2>VAT - Avoid default values</h2>
+				</section>
+
+                <!-- Agenda -->
+                <section>
+                    <section>
+                        <h2>Agenda</h2>
+                        <ul>
+                            <li>Disclaimer</li>
+                            <li>Our goal</li>
+                            <li>What we meet</li>
+                            <li>What we changed</li>
+                            <li>What we built for alarmistics</li>
+                            <li>Open for questions</li>
+                        </ul>
+                    </section>
+                </section>
+
+                <!-- Disclaimer - START -->
+                <section>
+
+                    <section>
+                        <h1>Disclaimer</h1>
+
+                        <p>The topic covered here is part of a larger effort (epic: "Existência de default values em backend (EVIO-2848)").</p>
+                        <p><strong>Today we will cover VAT related those items</strong>:</p>
+
+                        <ol>
+                            <li class="fragment fade-up">Price estimation on app</li>
+                            <li class="fragment fade-up">Sessions started via app</li>
+                            <li class="fragment fade-up">Sessions started via card(token)</li>
+                        </ol>
+                    </section>
+
+                </section>
+                <!-- Disclaimer - END -->
+
+                <!-- Our Goal - START -->
+                <section>
+                    <section>
+                        <h1>Our goal</h1>
+                        <p>Our goal it's simple: Avoid default values when we are unable to obtain fee settings (<strong>for any reason</strong>) and avoid problems with incorrect billing.</p>
+                    </section>
+                </section>
+                <!-- Our Goal - END -->
+
+                <!-- What we meet - START -->
+                <section>
+                    <section>
+                        <h1>What we meet</h1>
+                        <p>During the analysis we realized that our applications were <strong>programmatically</strong> returning default values for all error cases, that is, the expected behavior was exactly this.</p>
+                        <p>So...</p>
+                        <p class="fragment fade">It was never a bug, but a feature. :D</p>
+                    </section>
+
+                    <!-- Example #1 - START -->
+                    <section>
+                        <h2>Example #1</h2>
+                        <figure>
+                            <img src="img/what_we_meet_1.png" height="500">
+                            <figcaption>Red part was removed</figcaption>
+                        </figure>
+                    </section>
+                    <!-- Example #1 - END -->
+
+                    <!-- Example #2 - START -->
+                    <section>
+                        <h2>Example #2</h2>
+                        <figure>
+                            <img src="img/what_we_meet_2.png" height="550">
+                            <figcaption>Red part was removed</figcaption>
+                        </figure>
+                    </section>
+                    <!-- Example #2 - END -->
+                </section>
+                <!-- What we meet - END -->
+
+                <!-- What we changed - START -->
+                <section>
+                    <section>
+                        <h1>What we changed</h1>
+                        <p>We refactored the code so that we no longer use default values and provide feedback to the user <strong>considering the context of use</strong>.</p>
+                    </section>
+
+                    <!-- Price Estimation - START -->
+                    <section>
+                        <h2>Price Estimation</h2>
+                        <p>In cases where we do not find VAT settings, we will have the same behavior as we currently have with Tesla.</p>
+                        <p>This change was release on backend_all_v3.9.5 (April 8th).</p>
+                    </section>
+
+                    <!-- Example #1 - START -->
+                    <section>
+                        <h2>Example #1</h2>
+                        <figure>
+                            <img src="img/price_estimation_1.png" height="600">
+                        </figure>
+                    </section>
+                    <!-- Example #1 - END -->
+
+                    <!-- Example #2 - START -->
+                    <section>
+                        <h2>Example #2</h2>
+                        <figure>
+                            <img src="img/price_estimation_2.jpeg" height="600">
+                        </figure>
+                    </section>
+                    <!-- Example #2 - END -->
+
+                    <!-- Example #3 - START -->
+                    <section>
+                        <h2>Example #3</h2>
+                        <figure>
+                            <img src="img/price_estimation_3.png" height="600">
+                        </figure>
+                    </section>
+                    <!-- Example #3 - END -->
+                    <!-- Price Estimation - END -->
+
+                    <!-- Sessions started via app - START -->
+                    <section>
+                        <h2>Sessions started via app</h2>
+                        <p>In cases where we do not find VAT settings, we send feedback to the app and <strong>prevent the session from starting</strong>.</p>
+                        <p>This change are planned to be released on backend_all_v4.0.1.</p>
+                    </section>
+
+                    <!-- Example #1 - START -->
+                    <section>
+                        <h2>Example #1</h2>
+                        <figure>
+                            <img src="img/session_app.jpeg" height="600">
+                        </figure>
+                    </section>
+                    <!-- Example #1 - END -->
+                    <!-- Sessions started via app - END -->
+
+                    <!-- Sessions started via card(token) - START -->
+                    <section>
+                        <h2>Sessions started via card(token)</h2>
+                        <p>In cases where we do not find VAT settings, we <strong>prevent the session from starting</strong>.</p>
+                        <p>This change are planned to be released on backend_all_v4.0.1.</p>
+                    </section>
+                    <!-- Sessions started via card(token) - END -->
+
+                </section>
+                <!-- What we changed - END -->
+
+                <!-- What we built for alarmistics - START -->
+                <section>
+                    <section>
+                        <h2>What we built for alarmistics</h2>
+                        <p>We created an alert in Sentry so that when a fee configuration is not found, we are notified in the Teams alert channel and an email is also sent to Rui.</p>
+
+                    </section>
+
+                    <!-- Alert -->
+                    <section>
+                        <h2>Alert</h2>
+                        <figure>
+                            <img src="img/alarms.png">
+                        </figure>
+                    </section>
+                </section>
+                <!-- What we built for alarmistics - START -->
+
+                <!-- The end ? -->
+                <section>
+                    <h1>THE END</h1>
+                    <h3>Questions ? :)</h3>
+                </section>
+
+                <section id="page13">
+                    <h1>Obrigado!</h1>
+                </section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+                //autoSlide: 5000, //in miliseconds
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
