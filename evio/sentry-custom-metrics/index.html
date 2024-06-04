@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-br" xmlns="http://www.w3.org/1999/html">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Sentry - Custom metrics</title>
+
+        <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+
+		<meta name="description" content="Slides about make mongoose schemas more reliable.">
+		<meta name="author" content="Diego Ramos">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+        <link rel="stylesheet" href="css/custom.css">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+                    <img src="img/sentry-logo.png" height="250">
+                    <h2>Sentry - Custom metrics</h2>
+				</section>
+
+                <!-- Agenda -->
+                <section>
+                    <section>
+                        <h2>Agenda</h2>
+                        <ul>
+                            <li>Our goal</li>
+                            <li>Explanation</li>
+                            <li>Use case</li>
+                            <li>Ideas</li>
+                            <li>Open for questions</li>
+                        </ul>
+                    </section>
+                </section>
+
+                <!-- Our Goal - START -->
+                <section>
+                    <section>
+                        <h1>Our goal</h1>
+                        <p>Share a way to have metrics around functions, operations, endpoints that are comparable over time. Considering our current "tool box".</p>
+                    </section>
+                </section>
+                <!-- Our Goal - END -->
+
+                <!-- What are? - START -->
+                <section>
+                    <section>
+                        <h1>Explanation</h1>
+                        <p>Metrics help you track and visualize the data points you care about, making it easier to monitor your application health and identify issues.</p>
+                    </section>
+                </section>
+                <!-- What are? - END -->
+
+                <!-- Use case - START -->
+                <section>
+                    <section>
+                        <h1>Use case</h1>
+                        <p>Our working group has worked on some initiatives and some of them involve performance gains. We took this opportunity to implement these metrics with Sentry to make the adjustments more explicit and measurable.</p>
+
+                        <ul>
+                            <li><a href="https://gitlab.ceiia.com/evio/evio/-/merge_requests/7948">MR</a></li>
+                            <li><a href="https://evio-75738f253.sentry.io/metrics/?environment=production&interval=15m&project=4505861160501248&statsPeriod=24h&widgets=%5B%7B%22type%22%3A1%2C%22id%22%3A0%2C%22mri%22%3A%22d%3Acustom%2Fget_contracts_processing_time%40millisecond%22%2C%22op%22%3A%22avg%22%2C%22query%22%3A%22%22%2C%22groupBy%22%3A%5B%22release%22%5D%2C%22sort%22%3A%7B%22order%22%3A%22asc%22%7D%2C%22displayType%22%3A%22line%22%2C%22isHidden%22%3Afalse%2C%22overlays%22%3A%5B%22samples%22%5D%7D%5D" target="_blank">Metrics on production</a></li>
+                        </ul>
+                    </section>
+                </section>
+                <!-- Use case - END -->
+
+                <!-- Ideas - START -->
+                <section>
+                    <section>
+                        <h2>Ideas</h2>
+                        <p>Some examles that we can implement:</p>
+                        <ul>
+                            <li class="fragment">Completed/Stopped/Failed charging sessions</li>
+                            <li class="fragment">Track the time of a operation for specific method/function</li>
+                            <li class="fragment">Any critical operation</li>
+                            <li class="fragment">More...</li>
+                        </ul>
+
+                        <figure class="fragment">
+                            <img src="img/metrics-everywhere.gif">
+                        </figure>
+                    </section>
+
+                </section>
+                <!-- Ideas - END -->
+
+                <!-- The end ? -->
+                <section>
+                    <h1>THE END</h1>
+                    <h3>Questions ? :)</h3>
+                </section>
+
+                <section id="page13">
+                    <h1>Obrigado!</h1>
+                </section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+                //autoSlide: 5000, //in miliseconds
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
