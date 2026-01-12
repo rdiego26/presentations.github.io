@@ -1,0 +1,19 @@
+.reveal pre {
+    box-shadow: none;
+}
+
+.scrollable-image {
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.scrollable-image img {
+    width: 100%;
+    height: auto;
+}
+
+.small-text {
+    font-size: 0.3em;
+}
+
