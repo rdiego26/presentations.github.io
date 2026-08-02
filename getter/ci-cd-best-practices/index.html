@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+
+		<title>Accelerate with Control — CI/CD, Security &amp; Engineering Best Practices</title>
+
+		<link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+		<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+
+		<meta name="description" content="CI/CD, security scanners and engineering best practices for the Getter team.">
+		<meta name="author" content="Diego Ramos">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/night.css" id="theme">
+
+		<link rel="stylesheet" href="css/custom.css">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<!-- ============ TITLE ============ -->
+				<section>
+					<img class="logo" src="img/getter-logo-light.webp" alt="Getter">
+					<h1>Accelerate with Control</h1>
+					<p class="muted">CI/CD, Security Scanners &amp; Engineering Best Practices</p>
+					<p class="small muted">Internal Tech Talk · Getter Team</p>
+				</section>
+
+				<!-- ============ AGENDA ============ -->
+				<section>
+					<h2>Agenda</h2>
+					<ol>
+						<li>Why CI/CD? <span class="muted">— acceleration with control</span></li>
+						<li>Automated testing: the safety net</li>
+						<li>CI/CD pipeline best practices</li>
+						<li>Security scanners in the pipeline</li>
+						<li>Commit &amp; Merge Request hygiene</li>
+						<li>Measuring impact</li>
+					</ol>
+				</section>
+
+				<!-- ============ WHY CI/CD ============ -->
+				<section>
+					<section>
+						<h2>The Problem</h2>
+						<div class="grid2">
+							<div class="card">
+								<h4>😰 Without automation</h4>
+								<ul>
+									<li>Deploys are <strong>manual &amp; scary</strong></li>
+									<li>Feedback comes <strong>days</strong> after the change</li>
+									<li>“It works on my machine”</li>
+									<li>Regressions reach production silently</li>
+									<li>Deploy day = firefighting day</li>
+								</ul>
+							</div>
+							<div class="card fragment">
+								<h4>🚀 With CI/CD</h4>
+								<ul>
+									<li>Every change is <strong>verified automatically</strong></li>
+									<li>Feedback in <strong>minutes</strong></li>
+									<li>One reproducible path to production</li>
+									<li>Rollbacks are cheap &amp; fast</li>
+									<li>Deploys become <strong>boring</strong> (good!)</li>
+								</ul>
+							</div>
+						</div>
+					</section>
+
+					<section>
+						<h2>CI/CD = Speed with Guardrails</h2>
+						<p>Continuous Integration: merge often, verify every merge.</p>
+						<p>Continuous Delivery: every commit is <strong>potentially releasable</strong>.</p>
+						<div class="pipeline">
+							<span class="stage">Commit</span><span class="arrow">→</span>
+							<span class="stage">Test</span><span class="arrow">→</span>
+							<span class="stage">Build</span><span class="arrow">→</span>
+							<span class="stage sec">Scan</span><span class="arrow">→</span>
+							<span class="stage ok">Deploy</span>
+						</div>
+						<div class="box info fragment">
+							<span class="title">The core idea</span>
+							Automation gives us <strong>speed</strong>; the pipeline gives us <strong>control</strong>. We don’t slow down to be safe — we verify continuously so we never have to stop.
+						</div>
+					</section>
+
+					<section>
+						<h2>Why It Matters for Us</h2>
+						<ul>
+							<li class="fragment">Small changes shipped often = <strong>less risk per release</strong></li>
+							<li class="fragment">Fast feedback loop = <strong>better developer experience</strong></li>
+							<li class="fragment">Automated checks = <strong>consistent quality bar</strong>, not reviewer roulette</li>
+							<li class="fragment">Auditable pipeline = <strong>confidence to move fast</strong> on Getter products</li>
+						</ul>
+					</section>
+				</section>
+
+				<!-- ============ AUTOMATED TESTING ============ -->
+				<section>
+					<section>
+						<h2>Automated Testing: The Safety Net</h2>
+						<p>CI/CD without tests is just <strong>automated deployment of bugs</strong>.</p>
+						<p class="fragment">Tests are the <em>control</em> in “Accelerate with Control”.</p>
+					</section>
+
+					<section>
+						<h2>The Test Pyramid</h2>
+						<pre><code>            /\
+           /  \        E2E / UI        few, slow, brittle
+          /----\        Integration     some, medium
+         /------\       Unit            many, fast, cheap
+        /--------\
+        Unit  Integration  E2E
+        (many, fast)   (few, slow)</code></pre>
+						<ul class="small">
+							<li><strong>Unit</strong> — one function/class, mocked deps → milliseconds</li>
+							<li><strong>Integration</strong> — DB, APIs, real modules → seconds</li>
+							<li><strong>E2E</strong> — user journeys, real stack → minutes</li>
+						</ul>
+					</section>
+
+					<section>
+						<h2>Test Principles</h2>
+						<div class="grid3">
+							<div class="card">
+								<h4>✅ Fast</h4>
+								<p>Developers run them locally before committing. If tests are slow, nobody runs them.</p>
+							</div>
+							<div class="card">
+								<h4>✅ Reliable</h4>
+								<p>No flaky tests. A flaky suite teaches the team to ignore red builds.</p>
+							</div>
+							<div class="card">
+								<h4>✅ Meaningful</h4>
+								<p>Test behavior, not implementation. High coverage ≠ good tests.</p>
+							</div>
+						</div>
+						<div class="box warn fragment">
+							<span class="title">Guard the pipeline</span>
+							Enforce <strong>coverage thresholds</strong> and block merge on failures — otherwise tests become decoration.
+						</div>
+					</section>
+
+					<section>
+						<h2>CI/CD as a Testing Accelerator</h2>
+						<ul>
+							<li class="fragment">Run the <strong>full suite</strong> on every MR — not just “the changed parts”</li>
+							<li class="fragment">Run <strong>fast checks first</strong>: lint → unit → integration → e2e (fail early)</li>
+							<li class="fragment">Parallelize jobs &amp; use <strong>test splitting</strong> to keep the loop short</li>
+							<li class="fragment">Publish test reports &amp; coverage so MRs show the impact visually</li>
+							<li class="fragment">Add <strong>contract tests</strong> between services to catch breaking API changes</li>
+						</ul>
+					</section>
+				</section>
+
+				<!-- ============ CI/CD BEST PRACTICES ============ -->
+				<section>
+					<section>
+						<h2>CI/CD Pipeline Best Practices</h2>
+						<p class="muted">The pipeline is code. Treat it with the same rigor as application code.</p>
+					</section>
+
+					<section>
+						<h2>Pipeline as Code</h2>
+						<p>Declarative pipelines live in the repo, versioned &amp; reviewed like any other change.</p>
+						<pre><code># .gitlab-ci.yml (example)
+stages: [lint, test, build, scan, deploy]
+
+lint:
+  stage: lint
+  script: npm run lint
+
+test:
+  stage: test
+  script: npm run test:ci
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+
+build:
+  stage: build
+  variables:
+    IMG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  script:
+    - docker build -t "$IMG" .
+    - docker push "$IMG"</code></pre>
+						<div class="box good fragment">
+							<span class="title">Why?</span>
+							Reviewable, auditable, reproducible. No more “the pipeline on my machine”.
+						</div>
+					</section>
+
+					<section>
+						<h2>Deterministic Builds</h2>
+						<div class="grid2">
+							<div class="card">
+								<h4>✔ Do</h4>
+								<ul>
+									<li>Commit <strong>lockfiles</strong> (package-lock.json, yarn.lock, poetry.lock)</li>
+									<li>Pin base images &amp; tool versions</li>
+									<li>Use <strong>immutable artifacts</strong> (image digest, not :latest)</li>
+									<li>Cache dependencies, <strong>not</strong> build output</li>
+								</ul>
+							</div>
+							<div class="card">
+								<h4>✘ Avoid</h4>
+								<ul>
+									<li><code>npm install</code> without lockfile → surprises</li>
+									<li><code>:latest</code> tags anywhere</li>
+									<li>Installing tools at runtime inside jobs</li>
+									<li>Non-reproducible “works yesterday” builds</li>
+								</ul>
+							</div>
+						</div>
+					</section>
+
+					<section>
+						<h2>Speed Without Cutting Corners</h2>
+						<div class="grid2">
+							<div class="card">
+								<h4>⏱ Cache smartly</h4>
+								<p>Cache <code>node_modules</code> / <code>~/.cache</code> keyed by lockfile hash. Cache Docker layers.</p>
+							</div>
+							<div class="card">
+								<h4>🎯 Fail fast</h4>
+								<p>Order stages: cheap &amp; fast checks first. Don’t build before linting.</p>
+							</div>
+							<div class="card">
+								<h4>🔀 Parallelize</h4>
+								<p>Split test suites across runners. Matrix builds for Node versions / browsers.</p>
+							</div>
+							<div class="card">
+								<h4>📦 Artifacts, not rebuilds</h4>
+								<p>Build once, promote the same artifact through environments.</p>
+							</div>
+						</div>
+					</section>
+
+					<section>
+						<h2>Environment Parity &amp; Rollbacks</h2>
+						<ul>
+							<li class="fragment">Dev / staging / prod should run the <strong>same artifact</strong> — only config differs</li>
+							<li class="fragment">Deploy with <strong>feature flags</strong> to release code without exposing it</li>
+							<li class="fragment">Automate <strong>rollback</strong>: one click/command back to the previous artifact</li>
+							<li class="fragment">Keep secrets in a <strong>vault / CI variables</strong> — never in the repo</li>
+							<li class="fragment">Use <strong>zero-downtime strategies</strong> (blue/green or canary) for critical services</li>
+						</ul>
+						<div class="box info fragment">
+							<span class="title">Golden rule</span>
+							If deploying is scary, deploy more often — until it isn’t.
+						</div>
+					</section>
+				</section>
+
+				<!-- ============ SECURITY ============ -->
+				<section>
+					<section>
+						<h2>Security Scanners in the Pipeline</h2>
+						<p><span class="badge red">Shift Left</span> Find vulnerabilities where they’re cheapest: <strong>before merge</strong>.</p>
+						<p class="fragment muted small">A vulnerability found in CI costs minutes. In production, it costs an incident.</p>
+					</section>
+
+					<section>
+						<h2>Scanner Categories</h2>
+						<div class="grid2">
+							<div class="card">
+								<h4>🔍 SAST — Static Analysis</h4>
+								<p>Scans source code for vulnerabilities &amp; bugs. <em>Semgrep, CodeQL, SonarQube, ESLint security plugins.</em></p>
+							</div>
+							<div class="card">
+								<h4>📦 Dependency / SCA</h4>
+								<p>Checks libraries &amp; licenses against vulnerability DBs. <em>Trivy, Grype, Dependabot, Renovate, npm audit.</em></p>
+							</div>
+							<div class="card">
+								<h4>🔑 Secret Scanning</h4>
+								<p>Detects keys, tokens &amp; passwords committed by accident. <em>gitleaks, trufflehog, GitLab secret detection.</em></p>
+							</div>
+							<div class="card">
+								<h4>🐳 Container Scanning</h4>
+								<p>Scans images &amp; OS packages for known CVEs. <em>Trivy image, Grype, Docker Scout.</em></p>
+							</div>
+						</div>
+					</section>
+
+					<section>
+						<h2>Where Each Scanner Runs</h2>
+						<div class="pipeline">
+							<span class="stage">Commit</span><span class="arrow">→</span>
+							<span class="stage sec">Secret scan</span><span class="arrow">→</span>
+							<span class="stage sec">SAST</span><span class="arrow">→</span>
+							<span class="stage sec">SCA deps</span><span class="arrow">→</span>
+							<span class="stage">Build</span><span class="arrow">→</span>
+							<span class="stage sec">Image scan</span><span class="arrow">→</span>
+							<span class="stage">Deploy</span>
+						</div>
+						<ul class="small">
+							<li><strong>Secret scan + SAST</strong>: on every commit / MR — instant feedback to the author</li>
+							<li><strong>SCA</strong>: on every MR + scheduled daily (new CVEs appear all the time)</li>
+							<li><strong>Image scan</strong>: after build, before the artifact is promoted</li>
+							<li><strong>DAST</strong>: against a deployed staging environment (OWASP ZAP) — fewer, scheduled runs</li>
+						</ul>
+					</section>
+
+					<section>
+						<h2>Example: Security Stage</h2>
+						<pre><code># .gitlab-ci.yml (example)
+scan:
+  stage: scan
+  parallel:
+    matrix:
+      - TOOL: [secrets, sast, deps]
+  script:
+    - case "$TOOL" in
+        secrets) gitleaks detect --source . --report-format json ;;
+        sast)    semgrep scan --config auto --json ;;
+        deps)    trivy fs --scanners vuln,secret --exit-code 1 --severity HIGH,CRITICAL . ;;
+      esac
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+image-scan:
+  stage: scan
+  script:
+    - trivy image --exit-code 1 --severity HIGH,CRITICAL $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  needs: [build]</code></pre>
+						<div class="box good fragment">
+							<span class="title">Policy</span>
+							Block merge on <strong>HIGH/CRITICAL</strong> findings. Track <strong>MEDIUM</strong> as debt in the issue tracker. Never ship known-critical vulnerabilities.
+						</div>
+					</section>
+
+					<section>
+						<h2>Security Culture Tips</h2>
+						<ul>
+							<li class="fragment">Fail the pipeline on <strong>secrets found</strong> — and rotate immediately when one slips through</li>
+							<li class="fragment">Keep <strong>dependency updates frequent</strong>; small updates are easier than a Friday “upgrade everything”</li>
+							<li class="fragment">Generate an <strong>SBOM</strong> (CycloneDX/SPDX) with each release — you can’t fix what you can’t inventory</li>
+							<li class="fragment">Don’t ignore scanner noise: tune rules, but <strong>never silence everything</strong></li>
+							<li class="fragment">Treat the pipeline itself as a <strong>security boundary</strong> — protect CI variables &amp; runners</li>
+						</ul>
+					</section>
+				</section>
+
+				<!-- ============ COMMITS ============ -->
+				<section>
+					<section>
+						<h2>Commit Best Practices</h2>
+						<p class="muted">History is documentation. Write it for your future self and your reviewers.</p>
+					</section>
+
+					<section>
+						<h2>Atomic Commits</h2>
+						<div class="grid2">
+							<div class="card">
+								<h4>✔ One logical change per commit</h4>
+								<ul>
+									<li>Easy to review, revert, bisect</li>
+									<li>“Fix bug X” should not also rename 40 files</li>
+									<li>Each commit leaves the codebase <strong>working</strong></li>
+								</ul>
+							</div>
+							<div class="card">
+								<h4>✘ Anti-patterns</h4>
+								<ul>
+									<li>“WIP”, “changes”, “fix”, “update” (meaningless)</li>
+									<li>Mixing refactor + feature + typo</li>
+									<li>Committing secrets, logs, or build artifacts</li>
+									<li>Huge 2,000-line commits nobody reviews</li>
+								</ul>
+							</div>
+						</div>
+					</section>
+
+					<section>
+						<h2>Conventional Commits</h2>
+						<p>A lightweight convention that enables automation.</p>
+						<pre><code>type(scope): subject
+
+feat(api): add pagination to list endpoint
+fix(auth): refresh token on 401
+refactor(cache): extract eviction policy
+docs(readme): update setup steps
+test(oee): cover daily-productivity fallback
+chore(deps): bump trivy to v0.60</code></pre>
+						<ul class="small fragment">
+							<li><strong>feat / fix / refactor / docs / test / chore</strong> — consistent vocabulary</li>
+							<li>Enables <strong>semantic-release</strong>, changelogs, and automatic versioning</li>
+							<li>Works great with <strong>squash-merge</strong>: the MR title becomes the commit</li>
+						</ul>
+					</section>
+
+					<section>
+						<h2>Guardrails for Commits</h2>
+						<ul>
+							<li class="fragment">Add <strong>pre-commit hooks</strong> (lint, format, secret scan) so bad commits never happen</li>
+							<li class="fragment">Use <strong>commitlint</strong> in CI to enforce the convention</li>
+							<li class="fragment">Sign commits (<code>git commit -S</code>) where the team requires it</li>
+							<li class="fragment">Rewrite history locally with <code>rebase -i</code> — but <strong>never</strong> force-push shared branches</li>
+						</ul>
+					</section>
+				</section>
+
+				<!-- ============ MERGE REQUESTS ============ -->
+				<section>
+					<section>
+						<h2>Merge Request Best Practices</h2>
+						<p class="muted">The MR is the unit of collaboration — and the last line of defense.</p>
+					</section>
+
+					<section>
+						<h2>Small, Reviewable MRs</h2>
+						<div class="box good">
+							<span class="title">✅ Rule of thumb</span>
+							Keep MRs under <strong>~300–400 lines</strong> and <strong>short-lived</strong> (merge within a day or two). Big MRs get shallow reviews.
+						</div>
+						<ul class="fragment">
+							<li>One MR = one feature/fix. Split large work into stacked MRs</li>
+							<li>Include <strong>tests</strong> in the same MR as the change they cover</li>
+							<li>Keep the branch <strong>up to date</strong> with the target (rebase or merge main)</li>
+							<li>If it’s hard to describe in 3 sentences, it’s too big</li>
+						</ul>
+					</section>
+
+					<section>
+						<h2>A Great MR Description</h2>
+						<pre><code>## What &amp; why
+Adds a fallback to daily-productivity when `sabor` is not
+populated by cam2/cam4, so OEE performance is no longer 0.
+
+## Changes
+- compute performance from global `padrao_linha_hora` rate
+- add regression test with cam2-style rows
+
+## How to test
+- run `npm test`
+- hit `/daily-productivity?date=2026-07-31`
+
+## Screenshots / logs
+- before: performance = 0 (empty group)
+- after: 102.5% (cam2) · 97.1% (cam4)
+
+Closes #123</code></pre>
+					</section>
+
+					<section>
+						<h2>Review Checklist</h2>
+						<div class="grid2">
+							<div class="card">
+								<h4>For the author</h4>
+								<ul>
+									<li>CI is <strong>green</strong> before asking for review</li>
+									<li>Self-review: re-read your own diff first</li>
+									<li>Link the issue; explain the “why”</li>
+									<li>Address feedback; don’t take it personally</li>
+								</ul>
+							</div>
+							<div class="card">
+								<h4>For the reviewer</h4>
+								<ul>
+									<li>Review the <strong>behavior and tests</strong>, not just style</li>
+									<li>Ask questions instead of demanding rewrites</li>
+									<li>Be specific: “this could return null → add a test”</li>
+									<li>Approve fast when it’s good — don’t gate on perfection</li>
+								</ul>
+							</div>
+						</div>
+						<div class="box warn fragment">
+							<span class="title">Automate the checklist</span>
+							MR templates + required pipeline jobs = reviewers focus on <em>logic</em>, not housekeeping.
+						</div>
+					</section>
+
+					<section>
+						<h2>Merge Strategies</h2>
+						<ul>
+							<li class="fragment"><strong>Squash merge</strong>: one clean commit per MR — great with Conventional Commits</li>
+							<li class="fragment"><strong>Merge commit</strong>: preserves full history — useful for long-lived feature branches</li>
+							<li class="fragment"><strong>Rebase merge</strong>: linear history — clean but requires discipline</li>
+							<li class="fragment"><strong>Protect the default branch</strong>: no direct pushes, MRs only, CI required</li>
+						</ul>
+					</section>
+				</section>
+
+				<!-- ============ MEASURING ============ -->
+				<section>
+					<section>
+						<h2>Measuring Impact</h2>
+						<p class="muted">You can’t improve what you don’t measure.</p>
+					</section>
+
+					<section>
+						<h2>DORA Metrics</h2>
+						<div class="grid2">
+							<div class="card">
+								<h4>⚡ Deployment Frequency</h4>
+								<p>How often we ship. More = smaller batches = less risk.</p>
+							</div>
+							<div class="card">
+								<h4>⏳ Lead Time for Changes</h4>
+								<p>Commit → production. CI/CD shortens this dramatically.</p>
+							</div>
+							<div class="card">
+								<h4>🔄 Change Failure Rate</h4>
+								<p>% of deploys causing failure. Tests + reviews + scans lower it.</p>
+							</div>
+							<div class="card">
+								<h4>🚑 MTTR</h4>
+								<p>Time to restore service. Rollbacks &amp; observability shrink it.</p>
+							</div>
+						</div>
+						<div class="box info fragment">
+							<span class="title">Targets (DORA high performers)</span>
+							Deploy on-demand · lead time &lt; 1 day · failure rate &lt; 15% · restore &lt; 1 hour
+						</div>
+					</section>
+
+					<section>
+						<h2>Pipeline Health</h2>
+						<ul>
+							<li class="fragment"><strong>Green rate</strong>: % of pipelines passing — if it’s low, the team ignores red</li>
+							<li class="fragment"><strong>Duration</strong>: total pipeline time — keep the loop &lt; 15 min for fast repos</li>
+							<li class="fragment"><strong>Flaky test count</strong>: hunt flakes down; they destroy trust</li>
+							<li class="fragment"><strong>Time to merge</strong>: from MR open to merge — short = healthy flow</li>
+							<li class="fragment"><strong>Scanner findings trend</strong>: should go down, not up</li>
+						</ul>
+					</section>
+				</section>
+
+				<!-- ============ TAKEAWAYS ============ -->
+				<section>
+					<h2>Key Takeaways</h2>
+					<div class="grid2">
+						<div class="card">
+							<h4>🤖 Automate everything repetitive</h4>
+							<p>Lint, test, build, scan, deploy — if it’s manual, it will be skipped under pressure.</p>
+						</div>
+						<div class="card">
+							<h4>✅ Tests are the control</h4>
+							<p>Fast, reliable, meaningful. Block merge on failure and coverage drops.</p>
+						</div>
+						<div class="card">
+							<h4>🔒 Scan early, scan often</h4>
+							<p>Secrets, SAST, SCA, images — shift left, block criticals, track the rest.</p>
+						</div>
+						<div class="card">
+							<h4>📝 Commit &amp; MR hygiene</h4>
+							<p>Atomic commits, Conventional Commits, small reviewable MRs with real descriptions.</p>
+						</div>
+					</div>
+					<div class="box good fragment">
+						<span class="title">The goal</span>
+						<strong>Ship faster with confidence.</strong> The pipeline is the guardrail that lets us accelerate without fear.
+					</div>
+				</section>
+
+				<!-- ============ THANKS ============ -->
+				<section>
+					<img class="logo" src="img/getter-logo-light.webp" alt="Getter">
+					<h1>Thank you!</h1>
+					<p class="muted">Questions &amp; discussion</p>
+					<p class="small muted">Slides: <code>presentations.github.io/getter/ci-cd-best-practices</code></p>
+				</section>
+
+			</div>
+
+		</div>
+
+		<div class="footer-brand">
+			<img src="img/getter-logo-light.webp" alt="Getter">
+			<span>Accelerate with Control</span>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+				//autoSlide: 5000, //in miliseconds
+
+				theme: Reveal.getQueryHash().theme || 'night', // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'slide', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>

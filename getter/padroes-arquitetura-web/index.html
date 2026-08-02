@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Padrões Técnicos de Arquitetura Web &amp; Integrações — Getter</title>
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="vendor/reveal/dist/reveal.css">
+  <link rel="stylesheet" href="vendor/reveal/plugin/highlight/monokai.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --getter-blue: #1863dc;
+      --getter-blue-light: #2ea3f2;
+      --getter-green: #11CE99;
+      --getter-dark-green: #003824;
+      --bg: #0a0f1e;
+      --bg-soft: #101a30;
+      --bg-card: #0f1830;
+      --border: rgba(255,255,255,.10);
+      --text: #e6ecf5;
+      --text-dim: #9fb0c7;
+      --danger: #ff6b6b;
+      --warn: #ffc857;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Reveal.js 5 adiciona esta classe ao body — garante o tema escuro */
+    body.reveal-viewport,
+    .reveal-viewport {
+      background: var(--bg) !important;
+      color: var(--text);
+    }
+
+    .reveal {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 30px;
+      color: var(--text);
+    }
+
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      text-transform: none;
+      letter-spacing: -.02em;
+      line-height: 1.15;
+    }
+
+    .reveal h1 { font-size: 1.9em; font-weight: 800; }
+    .reveal h2 { font-size: 1.45em; font-weight: 800; }
+    .reveal h3 { font-size: 1.05em; font-weight: 700; }
+    .reveal p  { line-height: 1.45; }
+
+    .reveal a { color: var(--getter-blue-light); }
+
+    /* ---------- helpers ---------- */
+    .accent      { color: var(--getter-green); }
+    .accent-blue { color: var(--getter-blue-light); }
+    .dim         { color: var(--text-dim); }
+    .small       { font-size: .62em; }
+    .tiny        { font-size: .5em; }
+    .mono        { font-family: 'JetBrains Mono', monospace; font-size: .8em; }
+
+    .kicker {
+      display: inline-block;
+      font-size: .42em;
+      font-weight: 700;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--getter-green);
+      border: 1px solid rgba(17,206,153,.35);
+      background: rgba(17,206,153,.08);
+      padding: .35em 1em;
+      border-radius: 999px;
+      margin-bottom: .9em;
+    }
+
+    .kicker.blue {
+      color: var(--getter-blue-light);
+      border-color: rgba(46,163,242,.35);
+      background: rgba(46,163,242,.08);
+    }
+
+    .section-title { margin: .15em 0 .15em; }
+    .section-sub { color: var(--text-dim); font-size: .62em; margin-top: 0; }
+
+    /* grids & cards */
+    .grid {
+      display: grid;
+      gap: .55em;
+      text-align: left;
+      margin-top: .6em;
+    }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid-2x2 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, auto); }
+
+    .card {
+      background: linear-gradient(160deg, rgba(24,99,220,.10), rgba(15,24,48,.85));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: .85em 1em;
+      font-size: .62em;
+      line-height: 1.4;
+    }
+    .card h4 { margin: 0 0 .35em; font-size: 1.05em; }
+    .card p, .card ul { margin: .15em 0; }
+    .card ul { padding-left: 1.1em; }
+    .card li { margin: .18em 0; }
+    .card .tag { display:inline-block; margin-right:.4em; }
+
+    .tag {
+      display: inline-block;
+      font-size: .55em;
+      font-weight: 600;
+      padding: .2em .65em;
+      border-radius: 999px;
+      background: rgba(24,99,220,.18);
+      color: var(--getter-blue-light);
+      border: 1px solid rgba(46,163,242,.25);
+      vertical-align: middle;
+    }
+    .tag.green { background: rgba(17,206,153,.12); color: var(--getter-green); border-color: rgba(17,206,153,.25); }
+    .tag.warn  { background: rgba(255,200,87,.10); color: var(--warn); border-color: rgba(255,200,87,.25); }
+    .tag.red   { background: rgba(255,107,107,.10); color: var(--danger); border-color: rgba(255,107,107,.25); }
+
+    /* tables */
+    .reveal table {
+      font-size: .52em;
+      border-collapse: collapse;
+      margin: .5em auto 0;
+      width: 100%;
+      max-width: 1050px;
+    }
+    .reveal table th {
+      background: rgba(24,99,220,.28);
+      color: #fff;
+      font-weight: 700;
+      text-align: left;
+      padding: .5em .7em;
+      border: 1px solid var(--border);
+      font-size: 1.02em;
+    }
+    .reveal table td {
+      padding: .45em .7em;
+      border: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+    .reveal table tr:nth-child(even) td { background: rgba(255,255,255,.025); }
+
+    /* lists */
+    .reveal ul, .reveal ol { line-height: 1.4; }
+    .reveal li { margin: .22em 0; font-size: .66em; }
+    .reveal li strong { color: #fff; }
+    .check li::marker { content: "✓  "; color: var(--getter-green); }
+    .cross li::marker { content: "✗  "; color: var(--danger); }
+    .arrow li::marker { content: "▸  "; color: var(--getter-blue-light); }
+
+    /* code */
+    .reveal pre {
+      font-size: .5em;
+      width: 100%;
+      max-width: 1100px;
+      margin: .6em auto 0;
+      box-shadow: 0 12px 40px rgba(0,0,0,.45);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .reveal pre code {
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.55;
+      padding: 1.1em 1.3em;
+      max-height: 460px;
+      overflow: auto;
+    }
+
+    /* callouts */
+    .callout {
+      display: flex;
+      gap: .8em;
+      align-items: flex-start;
+      text-align: left;
+      background: rgba(17,206,153,.07);
+      border: 1px solid rgba(17,206,153,.28);
+      border-left: 5px solid var(--getter-green);
+      border-radius: 12px;
+      padding: .8em 1.1em;
+      font-size: .6em;
+      line-height: 1.45;
+      margin: .6em auto 0;
+      max-width: 1100px;
+    }
+    .callout.blue {
+      background: rgba(46,163,242,.07);
+      border-color: rgba(46,163,242,.28);
+      border-left-color: var(--getter-blue-light);
+    }
+    .callout.warn {
+      background: rgba(255,200,87,.06);
+      border-color: rgba(255,200,87,.25);
+      border-left-color: var(--warn);
+    }
+    .callout .ico { font-size: 1.4em; line-height: 1; }
+
+    /* step pills */
+    .steps { display: flex; gap: .5em; justify-content: center; margin-top: .7em; flex-wrap: wrap; }
+    .step {
+      font-size: .55em;
+      padding: .5em .9em;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      text-align: left;
+      min-width: 200px;
+    }
+    .step b { color: var(--getter-green); display: block; font-size: .9em; margin-bottom: .2em; }
+    .step span { color: var(--text-dim); font-size: .95em; }
+
+    .kpi-row { display:flex; gap: .6em; justify-content: center; margin-top: .7em; }
+    .kpi {
+      flex: 1; max-width: 240px;
+      background: linear-gradient(170deg, rgba(24,99,220,.16), rgba(15,24,48,.9));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: .7em .6em;
+      font-size: .6em;
+    }
+    .kpi .num { font-size: 1.7em; font-weight: 800; color: var(--getter-green); line-height: 1.1; }
+    .kpi .lbl { color: var(--text-dim); font-size: .85em; }
+
+    .quote {
+      font-size: .85em;
+      font-weight: 300;
+      font-style: italic;
+      color: #fff;
+      max-width: 1000px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* logo / footer */
+    .slide-logo {
+      position: fixed;
+      top: 18px; right: 24px;
+      height: 34px;
+      opacity: .85;
+      z-index: 30;
+      pointer-events: none;
+    }
+    .slide-footer {
+      position: fixed;
+      bottom: 14px; left: 24px;
+      font-size: 13px;
+      color: var(--text-dim);
+      letter-spacing: .08em;
+      z-index: 30;
+      pointer-events: none;
+    }
+    .cover-logo { height: 120px; margin-bottom: .6em; }
+    .cover-date { margin-top: 1.6em; font-size: .5em; color: var(--text-dim); }
+
+    .reveal .progress { color: var(--getter-green); height: 4px; }
+    .reveal .controls { color: var(--getter-blue-light); }
+
+    /* title underline */
+    .h-underline { position: relative; display: inline-block; }
+    .h-underline::after {
+      content: "";
+      position: absolute;
+      left: 0; bottom: -12px;
+      width: 72px; height: 5px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--getter-green), var(--getter-blue-light));
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ============ CAPA ============ -->
+      <section>
+        <img class="cover-logo" src="assets/logo-getter-color.png" alt="Getter">
+        <h1 class="section-title">Padrões Técnicos de Arquitetura<br><span class="accent">Web &amp; Integrações</span></h1>
+        <p class="section-sub" style="max-width:820px;margin:0 auto;">
+          Diretrizes de engenharia para construção de sistemas escaláveis, seguros e de alta performance
+        </p>
+        <p class="cover-date">Time de Engenharia · Getter · Agosto 2026</p>
+      </section>
+
+      <!-- ============ AGENDA ============ -->
+      <section>
+        <span class="kicker">Agenda</span>
+        <h2 class="section-title">O que vamos cobrir</h2>
+        <div class="grid grid-2" style="grid-template-columns: 1.15fr .85fr; max-width: 1100px;">
+          <div>
+            <ul class="arrow" style="font-size:1.05em;">
+              <li><strong>Contexto:</strong> stack atual da Getter</li>
+              <li><strong>Princípios</strong> norteadores de arquitetura</li>
+              <li><strong>Padrões de APIs</strong> REST e contratos</li>
+              <li><strong>Comunicação entre serviços</strong> em alta carga</li>
+              <li><strong>Resiliência e observabilidade</strong></li>
+            </ul>
+          </div>
+          <div>
+            <ul class="arrow" style="font-size:1.05em;">
+              <li><strong>Padrões por framework:</strong> FastAPI · NestJS · Next.js</li>
+              <li><strong>GitLab:</strong> repositórios, CI/CD e segurança</li>
+              <li><strong>Segurança</strong> em integrações</li>
+              <li><strong>Qualidade</strong> e convenções de código</li>
+              <li><strong>Plano de adoção</strong> e próximos passos</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CONTEXTO / STACK ============ -->
+      <section>
+        <span class="kicker">Contexto</span>
+        <h2 class="section-title">Stack atual da Getter</h2>
+        <p class="section-sub">Nossa base tecnológica — madura, mas precisa de padrões explícitos para escalar com consistência.</p>
+        <div class="grid grid-3">
+          <div class="card">
+            <h4><span class="tag green">Python</span> FastAPI</h4>
+            <p><strong>APIs e serviços backend</strong></p>
+            <ul>
+              <li>Async nativo (<code>async/await</code>)</li>
+              <li>Validação com Pydantic + OpenAPI automático</li>
+              <li>Alta produtividade e performance</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4><span class="tag green">TypeScript</span> NestJS</h4>
+            <p><strong>APIs estruturadas e integrações</strong></p>
+            <ul>
+              <li>DI + módulos → arquitetura testável</li>
+              <li>Guardas/interceptors para segurança e observabilidade</li>
+              <li>Ecossistema Node maduro</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4><span class="tag green">TypeScript</span> Next.js</h4>
+            <p><strong>Frontends e aplicações web</strong></p>
+            <ul>
+              <li>App Router + Server Components</li>
+              <li>SSR / ISR para performance e SEO</li>
+              <li>Camada BFF via Route Handlers</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout blue">
+          <span class="ico">🎯</span>
+          <div><strong>Objetivo:</strong> padronizar <em>como</em> construímos, integramos, versionamos e entregamos software sobre essa stack — sem engessar a tecnologia.</div>
+        </div>
+      </section>
+
+      <!-- ============ PRINCÍPIOS ============ -->
+      <section>
+        <span class="kicker">Fundamentos</span>
+        <h2 class="section-title">Princípios norteadores</h2>
+        <div class="grid grid-3">
+          <div class="card"><h4>1 · Padronização</h4><p>Contratos e convenções explícitas reduzem atrito entre times e facilitam onboarding.</p></div>
+          <div class="card"><h4>2 · Simplicidade</h4><p>Menos moving parts. Solução mais simples que atende ao requisito vence a mais sofisticada.</p></div>
+          <div class="card"><h4>3 · Segurança por padrão</h4><p>Autenticação, autorização e segredos protegidos desde o primeiro commit.</p></div>
+          <div class="card"><h4>4 · Performance consciente</h4><p>Protocolos e padrões escolhidos pelo requisito de carga — não por modismo.</p></div>
+          <div class="card"><h4>5 · Observabilidade</h4><p>Tudo que roda em produção precisa ser mensurável: logs, métricas e traces.</p></div>
+          <div class="card"><h4>6 · Automação</h4><p>CI/CD, testes e quality gates rodam em pipeline — não dependem de memória humana.</p></div>
+        </div>
+      </section>
+
+      <!-- ============ APIs REST ============ -->
+      <section>
+        <span class="kicker">APIs</span>
+        <h2 class="section-title">Padrão de APIs REST</h2>
+        <div class="grid grid-2" style="max-width:1100px;">
+          <div class="card">
+            <h4><span class="tag">Contrato</span> OpenAPI 3.x</h4>
+            <ul>
+              <li><strong>Spec-first:</strong> o contrato é revisado antes do código</li>
+              <li>Geração de clientes, docs e mocks automáticos</li>
+              <li>FastAPI gera o OpenAPI nativamente; NestJS via <span class="mono">@nestjs/swagger</span></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4><span class="tag">Evolução</span> Versionamento</h4>
+            <ul>
+              <li>Versionar a <strong>URL</strong> (<span class="mono">/api/v1/...</span>) para contratos públicos</li>
+              <li>Semantic versioning para o contrato interno</li>
+              <li>Depreciação com janela mínima de 2 releases</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4><span class="tag">Robustez</span> Erros padronizados</h4>
+            <ul>
+              <li>Formato único: <strong>RFC 7807</strong> (Problem Details)</li>
+              <li>Status codes corretos (400/401/403/404/409/422/429/5xx)</li>
+              <li><span class="mono">request_id</span> em toda resposta de erro</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4><span class="tag">Escala</span> Paginação &amp; idempotência</h4>
+            <ul>
+              <li>Paginação por <strong>cursor</strong> em listas grandes</li>
+              <li><strong>Idempotency-Key</strong> em POSTs críticos (pagamentos, webhooks)</li>
+              <li>Filtros, ordenação e campos via query params explícitos</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ EXEMPLO ERRO ============ -->
+      <section>
+        <span class="kicker">APIs</span>
+        <h2 class="section-title">Contrato de erro padrão</h2>
+        <p class="section-sub">RFC 7807 — todas as APIs da Getter respondem erros neste formato.</p>
+        <pre><code class="language-json" data-trim data-noescape>{
+  "type": "https://api.getter.ai/errors/validation",
+  "title": "Dados inválidos",
+  "status": 422,
+  "detail": "O campo 'email' não é um e-mail válido",
+  "instance": "/api/v1/users",
+  "request_id": "01J2K...",
+  "errors": [
+    { "field": "email", "message": "Formato inválido", "code": "invalid_format" }
+  ]
+}</code></pre>
+        <div class="callout blue">
+          <span class="ico">ℹ️</span>
+          <div>Clientes não precisam "adivinhar" o erro — o contrato é estável e documentado no OpenAPI.</div>
+        </div>
+      </section>
+
+      <!-- ============ COMUNICAÇÃO ENTRE SERVIÇOS ============ -->
+      <section>
+        <span class="kicker">Integrações</span>
+        <h2 class="section-title">Comunicação entre serviços — visão geral</h2>
+        <table>
+          <thead>
+            <tr><th>Critério</th><th>REST/HTTP</th><th>gRPC</th><th>GraphQL</th><th>Mensageria</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Contrato</strong></td><td>OpenAPI</td><td>Protocol Buffers</td><td>Schema GraphQL</td><td>Schema de evento</td></tr>
+            <tr><td><strong>Transporte</strong></td><td>HTTP/1.1</td><td>HTTP/2</td><td>HTTP/1.1</td><td>TCP (AMQP/Kafka)</td></tr>
+            <tr><td><strong>Serialização</strong></td><td>JSON</td><td>Binária (Protobuf)</td><td>JSON</td><td>Binária/JSON</td></tr>
+            <tr><td><strong>Latência</strong></td><td>Média</td><td><span class="accent">Baixa</span></td><td>Média</td><td>Assíncrona</td></tr>
+            <tr><td><strong>Alta carga</strong></td><td>OK</td><td><span class="accent">Excelente</span></td><td>Limitada</td><td><span class="accent">Excelente</span></td></tr>
+            <tr><td><strong>Casos de uso</strong></td><td>APIs públicas, BFF</td><td>Serviço↔serviço</td><td>Aggregation p/ clientes</td><td>Eventos, filas, desacoplamento</td></tr>
+          </tbody>
+        </table>
+        <div class="callout">
+          <span class="ico">⚡</span>
+          <div><strong>Regra:</strong> REST para fronteiras externas/BFF · <strong>gRPC para tráfego interno de alta carga</strong> · mensageria para o que não precisa de resposta imediata.</div>
+        </div>
+      </section>
+
+      <!-- ============ gRPC ============ -->
+      <section>
+        <span class="kicker">Alta carga</span>
+        <h2 class="section-title">gRPC para comunicação interna</h2>
+        <div class="grid grid-2" style="max-width:1100px;">
+          <div>
+            <ul class="check" style="font-size:1.05em;">
+              <li><strong>HTTP/2:</strong> multiplexação, header compression, menor latência</li>
+              <li><strong>Protobuf:</strong> payload binário ~5–10× menor que JSON</li>
+              <li><strong>Streaming</strong> unário, server-stream, client-stream e bidirecional</li>
+              <li><strong>Code generation</strong> em Python e TypeScript a partir do mesmo <span class="mono">.proto</span></li>
+              <li><strong>Deadlines &amp; cancellation</strong> nativos por chamada</li>
+            </ul>
+            <div class="callout warn" style="margin-top:.8em;">
+              <span class="ico">⚠️</span>
+              <div>Usar gRPC <strong>só internamente</strong> (mTLS na mesh/serviço). Expor REST na borda.</div>
+            </div>
+          </div>
+          <div>
+            <pre style="margin:0;font-size:.42em;"><code class="language-protobuf" data-trim data-noescape>syntax = "proto3";
+package getter.product.v1;
+
+service ProductService {
+  rpc GetProducts(ProductRequest)
+      returns (stream Product);          // server-streaming
+}
+
+message ProductRequest {
+  repeated string ids = 1;
+  bool include_price = 2;
+}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  double price = 3;
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ MENSAGERIA ============ -->
+      <section>
+        <span class="kicker">Assíncrono</span>
+        <h2 class="section-title">Mensageria: eventos &amp; filas</h2>
+        <div class="grid grid-2" style="max-width:1100px;">
+          <div class="card">
+            <h4><span class="tag green">Event-driven</span> Publicar / Subscrever</h4>
+            <ul>
+              <li>Eventos de domínio: <span class="mono">order.created</span>, <span class="mono">pizza.registered</span></li>
+              <li>Produtor não conhece consumidores → desacoplamento total</li>
+              <li>Replays e projeções (CQRS) para leitura escalável</li>
+              <li>Ferramentas: <strong>Kafka</strong> (alto throughput, retenção) · <strong>RabbitMQ</strong> (roteamento flexível)</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4><span class="tag">Trabalho</span> Filas / Jobs</h4>
+            <ul>
+              <li>Tarefas de longa duração: e-mail, PDF, ML, integrações externas</li>
+              <li>Retry com backoff exponencial + <strong>DLQ</strong> (dead-letter queue)</li>
+              <li>Consumidores idempotentes — processar 2× ≠ efeito duplicado</li>
+              <li>Ferramentas: <strong>RabbitMQ</strong>, <strong>BullMQ</strong> (Node), <strong>Celery/ARQ</strong> (Python)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <span class="ico">🧭</span>
+          <div><strong>Decisão rápida:</strong> precisa da resposta na mesma request → <strong>síncrono (gRPC/REST)</strong>. Pode ser processado depois / muitos consumidores → <strong>assíncrono (mensageria)</strong>.</div>
+        </div>
+      </section>
+
+      <!-- ============ RESILIÊNCIA ============ -->
+      <section>
+        <span class="kicker">Confiabilidade</span>
+        <h2 class="section-title">Padrões de resiliência</h2>
+        <div class="grid grid-4">
+          <div class="card">
+            <h4>⏱ Timeouts</h4>
+            <p>Todo cliente de rede tem timeout explícito. Em gRPC, via <strong>deadline</strong>. Sem timeout = falha em cascata.</p>
+          </div>
+          <div class="card">
+            <h4>🔁 Retries</h4>
+            <p>Retry apenas em falhas transitórias (5xx/timeout), com <strong>backoff exponencial + jitter</strong>. Nunca retry em 4xx.</p>
+          </div>
+          <div class="card">
+            <h4>⛔ Circuit breaker</h4>
+            <p>Após N falhas, abre o circuito e falha rápido por um período. Evita sobrecarregar dependência doente.</p>
+          </div>
+          <div class="card">
+            <h4>🪣 Bulkhead</h4>
+            <p>Isola dependências por pool de conexões/threads. Uma dependência lenta não derruba as demais.</p>
+          </div>
+        </div>
+        <div class="callout blue">
+          <span class="ico">🧰</span>
+          <div><strong>Ferramentas:</strong> Python → <span class="mono">tenacity</span>, <span class="mono">circuitbreaker</span> · Node/TS → <span class="mono">opossum</span>, <span class="mono">p-limit</span> · malha de serviços → <span class="mono">Istio/Linkerd</span> (timeouts, retries, circuit breaking declarativos).</div>
+        </div>
+      </section>
+
+      <!-- ============ OBSERVABILIDADE ============ -->
+      <section>
+        <span class="kicker">Produção</span>
+        <h2 class="section-title">Observabilidade como padrão</h2>
+        <div class="kpi-row">
+          <div class="kpi"><div class="num">Logs</div><div class="lbl">Estruturados (JSON) com <span class="mono">request_id</span> e <span class="mono">trace_id</span></div></div>
+          <div class="kpi"><div class="num">Métricas</div><div class="lbl">RED: Rate · Errors · Duration (Prometheus/OpenTelemetry)</div></div>
+          <div class="kpi"><div class="num">Traces</div><div class="lbl">Distribuídos ponta a ponta — OpenTelemetry + Jaeger/Tempo</div></div>
+        </div>
+        <div class="callout blue">
+          <span class="ico">🔗</span>
+          <div><strong>OpenTelemetry como padrão único:</strong> instrumentação compartilhada entre Python e TypeScript; propagação de contexto (<span class="mono">traceparent</span>) automática em REST, gRPC e mensageria.</div>
+        </div>
+        <div class="callout">
+          <span class="ico">✅</span>
+          <div><strong>Mínimo aceitável em todo serviço:</strong> health check (<span class="mono">/health/live</span> + <span class="mono">/health/ready</span>), métricas de RED, log estruturado e rastreio de erros (Sentry).</div>
+        </div>
+      </section>
+
+      <!-- ============ PADRÕES FASTAPI ============ -->
+      <section>
+        <span class="kicker">Stack · Python</span>
+        <h2 class="section-title">Padrões FastAPI</h2>
+        <div class="grid grid-2" style="max-width:1100px;">
+          <div>
+            <ul class="check" style="font-size:1.05em;">
+              <li><strong>Estrutura por domínio</strong> (não por camada técnica): <span class="mono">routes / services / repositories / schemas</span></li>
+              <li><strong>Pydantic v2</strong> para schemas de entrada/saída — nunca <span class="mono">dict</span> cru</li>
+              <li><strong>DI via Depends</strong> para DB, auth e serviços — testável</li>
+              <li><strong>Lifespan</strong> para startup/shutdown (pools, migrations)</li>
+              <li>Async <strong>só até o banco</strong>: SQLAlchemy async ou <span class="mono">asyncpg</span></li>
+            </ul>
+          </div>
+          <div>
+            <pre style="margin:0;font-size:.42em;"><code class="language-python" data-trim data-noescape>from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
+router = APIRouter(prefix="/api/v1/users")
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    name: str
+
+@router.post("", status_code=201)
+async def create_user(
+    payload: UserCreate,
+    db: Session = Depends(get_db),
+):
+    user = await user_service.create(db, payload)
+    return UserOut.model_validate(user)</code></pre>
+            <div class="callout warn" style="margin-top:.5em;">
+              <span class="ico">⚠️</span>
+              <div>Bloquear operações síncronas pesadas no event loop (CPU-bound → <span class="mono">run_in_executor</span> ou worker separado).</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PADRÕES NESTJS ============ -->
+      <section>
+        <span class="kicker">Stack · TypeScript</span>
+        <h2 class="section-title">Padrões NestJS</h2>
+        <div class="grid grid-2" style="max-width:1100px;">
+          <div>
+            <ul class="check" style="font-size:1.05em;">
+              <li><strong>Módulos por domínio</strong>: <span class="mono">Module → Controller → Service → Repository</span></li>
+              <li><strong>DTOs com class-validator</strong> + <span class="mono">ValidationPipe</span> global (whitelist: true)</li>
+              <li><strong>Guards</strong> para authz (RBAC/claims), <strong>Interceptors</strong> para logging e <span class="mono">request_id</span></li>
+              <li><strong>@nestjs/swagger</strong> para gerar OpenAPI a partir de decorators</li>
+              <li>Testes com <span class="mono">supertest</span> + módulos de teste isolados</li>
+            </ul>
+          </div>
+          <div>
+            <pre style="margin:0;font-size:.42em;"><code class="language-typescript" data-trim data-noescape>// users.controller.ts
+@Controller('api/v1/users')
+export class UsersController {
+  constructor(private readonly users: UsersService) {}
+
+  @Post()
+  @HttpCode(201)
+  create(@Body(new ValidationPipe({ whitelist: true }))
+         dto: CreateUserDto) {
+    return this.users.create(dto);
+  }
+}</code></pre>
+            <div class="callout warn" style="margin-top:.5em;">
+              <span class="ico">⚠️</span>
+              <div>Cuidado com <strong>CPU-bound</strong> no event loop do Node — use workers/filas para processamento pesado.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PADRÕES NEXT.JS ============ -->
+      <section>
+        <span class="kicker">Stack · Frontend</span>
+        <h2 class="section-title">Padrões Next.js</h2>
+        <div class="grid grid-2" style="max-width:1100px;">
+          <div>
+            <ul class="check" style="font-size:1.05em;">
+              <li><strong>App Router</strong> + Server Components por padrão; client components só quando há interatividade</li>
+              <li>Dados via <strong>Server Components / Route Handlers</strong> — nunca expor secrets no client</li>
+              <li>Cache consciente: <strong>ISR</strong> para conteúdo, revalidação sob demanda</li>
+              <li><strong>BFF:</strong> Route Handlers como proxy autenticado para APIs internas</li>
+              <li>TypeScript strict + <strong>Zod</strong> para validação de dados externos</li>
+            </ul>
+          </div>
+          <div>
+            <pre style="margin:0;font-size:.42em;"><code class="language-typescript" data-trim data-noescape>// app/dashboard/page.tsx  (Server Component)
+export default async function Dashboard() {
+  const data = await getDashboardData(); // server-side only
+  return <DashboardView data={data} />;
+}
+
+// app/api/proxy/route.ts  (BFF)
+export async function GET(req: Request) {
+  const token = await exchangeSession(req);
+  return fetch(`${INTERNAL_API}/v1/data`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+}</code></pre>
+          </div>
+        </div>
+        <div class="callout">
+          <span class="ico">🔒</span>
+          <div><strong>Regra de ouro:</strong> nenhum segredo (<span class="mono">NEXT_PUBLIC_*</span> com valor sensível) no bundle do navegador.</div>
+        </div>
+      </section>
+
+      <!-- ============ GITLAB REPOS ============ -->
+      <section>
+        <span class="kicker">GitLab</span>
+        <h2 class="section-title">Repositórios &amp; fluxo de trabalho</h2>
+        <div class="grid grid-2" style="max-width:1100px;">
+          <div class="card">
+            <h4><span class="tag">Estrutura</span> Repositórios</h4>
+            <ul>
+              <li><strong>1 serviço = 1 repo</strong> (ou monorepo por domínio, decidido por time)</li>
+              <li>Branch principal: <span class="mono">main</span> — sempre deployável</li>
+              <li>Fluxo: <strong>trunk-based</strong> com branches curtos de feature (2–3 dias)</li>
+              <li>Nomes padronizados: <span class="mono">feat/</span>, <span class="mono">fix/</span>, <span class="mono">chore/</span></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4><span class="tag">Qualidade</span> Merge Requests</h4>
+            <ul>
+              <li><strong>MR obrigatório</strong> — push direto em <span class="mono">main</span> bloqueado</li>
+              <li>Pipelines <strong>verdes</strong> antes do merge (gate obrigatório)</li>
+              <li>Code review com <strong>pelo menos 1 approver</strong></li>
+              <li>Branch protegida: sem force push, sem deleção</li>
+              <li>Convenção: <strong>Conventional Commits</strong> (feat, fix, refactor, docs, test, chore)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ GITLAB CI/CD ============ -->
+      <section>
+        <span class="kicker">GitLab</span>
+        <h2 class="section-title">CI/CD — pipeline padrão</h2>
+        <div class="steps">
+          <div class="step"><b>1 · lint</b><span>formatação + lint + typecheck</span></div>
+          <div class="step"><b>2 · test</b><span>unit + integração + coverage gate</span></div>
+          <div class="step"><b>3 · build</b><span>build + tag com SHA curto</span></div>
+          <div class="step"><b>4 · scan</b><span>SAST · secrets · dependências · container</span></div>
+          <div class="step"><b>5 · deploy</b><span>ambientes: staging → produção</span></div>
+        </div>
+        <pre style="max-width:1100px;font-size:.45em;"><code class="language-yaml" data-trim data-noescape>stages: [lint, test, build, scan, deploy]
+
+lint:
+  stage: lint
+  script: [npm run lint, npm run typecheck]
+
+test:
+  stage: test
+  script: [npm run test -- --coverage]
+  coverage: '/All files[^|]*\|[^|]*\s+([\d.]+)/'
+
+scan:
+  stage: scan
+  script:
+    - semgrep ci                    # SAST
+    - gitleaks detect               # segredos
+    - trivy image $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA  # container
+
+deploy:
+  stage: deploy
+  environment: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"</code></pre>
+      </section>
+
+      <!-- ============ SEGURANÇA CI/CD ============ -->
+      <section>
+        <span class="kicker">GitLab</span>
+        <h2 class="section-title">Reforço de segurança no pipeline</h2>
+        <div class="grid grid-3">
+          <div class="card">
+            <h4><span class="tag red">SAST</span> Análise estática</h4>
+            <p>Semgrep/Bandit (Python), ESLint security (TS). Falha bloqueia o merge — sem exceção silenciosa.</p>
+          </div>
+          <div class="card">
+            <h4><span class="tag red">Secrets</span> Detecção de segredos</h4>
+            <p>Gitleaks + <strong>pre-commit hook</strong>. Segredo vazado = revogação imediata, não apenas remoção do commit.</p>
+          </div>
+          <div class="card">
+            <h4><span class="tag red">Deps</span> Dependency scanning</h4>
+            <p>Trivy / Renovate com <strong>update automático</strong> e alerta de CVEs críticas (severity high+).</p>
+          </div>
+          <div class="card">
+            <h4><span class="tag red">Container</span> Imagens seguras</h4>
+            <p>Base slim e assinada, scan de vulnerabilidades, sem <span class="mono">root</span>, read-only filesystem.</p>
+          </div>
+          <div class="card">
+            <h4><span class="tag red">Runner</span> Runners confiáveis</h4>
+            <p>Runners <strong>privados</strong> da empresa; <span class="mono">DOCKER_HOST</span> restrito; sem jobs privilegiados.</p>
+          </div>
+          <div class="card">
+            <h4><span class="tag red">Supply</span> Integridade</h4>
+            <p>Artefatos assinados, <strong>SBOM</strong> gerado por imagem e registro privado com acesso mínimo.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SEGURANÇA INTEGRAÇÕES ============ -->
+      <section>
+        <span class="kicker">Segurança</span>
+        <h2 class="section-title">Segurança em integrações</h2>
+        <div class="grid grid-2" style="max-width:1100px;">
+          <div>
+            <ul class="check" style="font-size:1.05em;">
+              <li><strong>AuthN:</strong> OAuth 2.0 + OIDC (single sign-on) — tokens JWT curtos, escopos mínimos</li>
+              <li><strong>AuthZ:</strong> claims/roles no token, verificados por guard/middleware</li>
+              <li><strong>Serviço↔serviço:</strong> mTLS ou client credentials com escopo restrito</li>
+              <li><strong>Segredos:</strong> GitLab CI Variables (protegidas) + Vault/Secret Manager — <strong>nunca no código</strong></li>
+              <li><strong>Transporte:</strong> HTTPS obrigatório; HSTS; CORS restrito por origem</li>
+            </ul>
+          </div>
+          <div>
+            <ul class="cross" style="font-size:1.05em;">
+              <li>❌ Segredos em <span class="mono">.env</span> versionado ou variáveis <span class="mono">NEXT_PUBLIC_*</span> sensíveis</li>
+              <li>❌ Tokens de longa duração sem rotação</li>
+              <li>❌ Rate limiting ausente em endpoints públicos</li>
+              <li>❌ Webhooks sem assinatura/validação de payload</li>
+              <li>❌ Logs com dados pessoais ou credenciais</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <span class="ico">🛡️</span>
+          <div><strong>Padrão:</strong> autenticação centralizada (OIDC) · autorização em cada serviço · segredos em cofre · auditoria de acessos.</div>
+        </div>
+      </section>
+
+      <!-- ============ QUALIDADE ============ -->
+      <section>
+        <span class="kicker">Qualidade</span>
+        <h2 class="section-title">Convenções de código &amp; testes</h2>
+        <div class="grid grid-2" style="max-width:1100px;">
+          <div class="card">
+            <h4><span class="tag">Código</span> Convenções</h4>
+            <ul>
+              <li><strong>Python:</strong> Ruff (lint+format) + mypy · <strong>TS:</strong> ESLint + Prettier + <span class="mono">strict: true</span></li>
+              <li>Conventional Commits + <strong>SemVer</strong> em releases</li>
+              <li>CHANGELOG gerado automaticamente no release</li>
+              <li>Pre-commit hooks (lint, format, secrets)</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4><span class="tag">Testes</span> Pirâmide</h4>
+            <ul>
+              <li><strong>Unit:</strong> rápido, sem rede — maioria do código</li>
+              <li><strong>Integração:</strong> com banco/API reais em container (Testcontainers)</li>
+              <li><strong>E2E:</strong> fluxos críticos (Playwright)</li>
+              <li><strong>Coverage gate</strong> mínimo por serviço (ex.: 80%)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout blue">
+          <span class="ico">📦</span>
+          <div><strong>Tipos compartilhados:</strong> pacote interno <span class="mono">@getter/types</span> / <span class="mono">getter-schemas</span> gerado a partir do OpenAPI/proto — contrato único entre frontend e backend.</div>
+        </div>
+      </section>
+
+      <!-- ============ PLANO DE ADOÇÃO ============ -->
+      <section>
+        <span class="kicker">Execução</span>
+        <h2 class="section-title">Plano de adoção</h2>
+        <div class="steps">
+          <div class="step"><b>Fase 1 · Sementes</b><span>Templates de projeto por stack (FastAPI, NestJS, Next.js) com padrões embutidos</span></div>
+          <div class="step"><b>Fase 2 · Pipelines</b><span>Modelo de CI/CD com gates de segurança habilitados em todos os repos</span></div>
+          <div class="step"><b>Fase 3 · Contratos</b><span>Adoção de OpenAPI/proto + pacote de tipos compartilhados</span></div>
+          <div class="step"><b>Fase 4 · gRPC &amp; eventos</b><span>Novos fluxos internos de alta carga via gRPC; eventos para desacoplamento</span></div>
+          <div class="step"><b>Fase 5 · Observabilidade</b><span>OpenTelemetry + tracing distribuído em todos os serviços</span></div>
+        </div>
+        <div class="callout">
+          <span class="ico">🚀</span>
+          <div><strong>Critério de sucesso:</strong> novos projetos nascem 100% dentro dos padrões; serviços legados migram progressivamente sem big-bang.</div>
+        </div>
+      </section>
+
+      <!-- ============ ENCERRAMENTO ============ -->
+      <section>
+        <img class="cover-logo" style="height:90px;" src="assets/logo-getter-color.png" alt="Getter">
+        <h2 class="section-title">Obrigado!</h2>
+        <p class="section-sub" style="max-width:800px;margin:0 auto;">
+          Padrões reduzem atrito, aumentam velocidade e protegem a operação.
+        </p>
+        <p class="cover-date">Diego Ramos</p>
+      </section>
+
+    </div>
+  </div>
+
+  <img class="slide-logo" src="assets/logo-getter-color.png" alt="Getter">
+  <div class="slide-footer">GETTER · PADRÕES TÉCNICOS</div>
+
+  <script src="vendor/reveal/dist/reveal.js"></script>
+  <script src="vendor/reveal/plugin/highlight/highlight.js"></script>
+  <script src="vendor/reveal/plugin/notes/notes.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: 'c/t',
+      transition: 'slide',
+      transitionSpeed: 'default',
+      controls: true,
+      progress: true,
+      center: true,
+      width: 1280,
+      height: 720,
+      margin: 0.04,
+      plugins: [RevealHighlight, RevealNotes]
+    });
+  </script>
+</body>
+</html>
